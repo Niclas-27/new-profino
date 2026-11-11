@@ -1908,7 +1908,6 @@ function setWelt(k,quiet){if(!WLBL[k])return;const ch=k!==WELT;WELT=k;WF=null;tr
  if(ch)setTimeout(()=>{go();weltSlots()},320)}
 function weltModal(){if($('#wmodal'))return;const sel=new Set(['vers']);const d=document.createElement('div');d.className='wmodal';d.id='wmodal';
  d.innerHTML=`<div class="wm-card" role="dialog" aria-modal="true" aria-labelledby="wmT">
-  <button type="button" class="iconbtn wm-x" data-wm-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   <span class="pill wm-new">Neu</span>
   <h2 id="wmT" class="h-section">profino gibt es jetzt in zwei Bildungswelten</h2>
   <p class="muted">Neben Versicherungsthemen finden Sie ab sofort auch Webinare, Kongresse und News zu Kapitalanlagen, für Vermittler nach § 34f GewO und KWG. Wählen Sie Ihre Welt. Beides ist möglich.</p>
@@ -1917,10 +1916,9 @@ function weltModal(){if($('#wmodal'))return;const sel=new Set(['vers']);const d=
   <p class="caption muted">Ändern können Sie Ihre Auswahl jederzeit im Profil. Mit beiden Welten filtern Sie auf der Übersicht per Schalter.</p></div>`;
  document.body.appendChild(d);
  const sum=()=>{const n=sel.size;$('#wmSum',d).textContent=n===2?'Sie sehen Inhalte aus beiden Welten.':n===1?'Sie sehen nur Inhalte aus '+WLBL[[...sel][0]]+'.':'Bitte wählen Sie mindestens eine Welt.';$('[data-wm-done]',d).disabled=!n};sum();
- $$('[data-wm]',d).forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.wm;sel.has(k)?sel.delete(k):sel.add(k);b.setAttribute('aria-pressed',sel.has(k));sum()}));
- const close=()=>{const k=sel.size===2?'beide':sel.size?[...sel][0]:'vers';d.classList.remove('show');setTimeout(()=>d.remove(),300);document.removeEventListener('keydown',esc);setWelt(k,true);if(k!=='vers')setTimeout(()=>erlaubnisModal(k),420);else{try{localStorage.setItem('pf-welt','vers')}catch(e){}nextOnboard()}};
- const esc=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',esc);
- $('[data-wm-done]',d).addEventListener('click',close);$('[data-wm-close]',d).addEventListener('click',close);d.addEventListener('click',e=>{if(e.target===d)close()});
+ $$('[data-wm]',d).forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.wm;if(k==='vers')return;sel.has(k)?sel.delete(k):sel.add(k);b.setAttribute('aria-pressed',sel.has(k));sum()}));
+ const close=()=>{const k=sel.size===2?'beide':sel.size?[...sel][0]:'vers';d.classList.remove('show');setTimeout(()=>d.remove(),300);setWelt(k,true);if(k!=='vers')setTimeout(()=>erlaubnisModal(k),420);else{try{localStorage.setItem('pf-welt','vers')}catch(e){}nextOnboard()}};
+ $('[data-wm-done]',d).addEventListener('click',close);
  requestAnimationFrame(()=>{d.classList.add('show');$('[data-wm]',d).focus({preventScroll:true})})}
 
 /* ===== Login zuerst (Feedback Niels 27.10.) =====
