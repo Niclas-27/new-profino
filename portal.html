@@ -1992,29 +1992,29 @@ const thDone=()=>{try{return localStorage.getItem('pf-themen')==='1'}catch(e){re
 function nextOnboard(){if(!thDone())setTimeout(themenModal,420);else setTimeout(()=>maybeIntro(),900)}
 const TMAX=12;let TORD=null;const shuf=a=>{if(!TORD){TORD=new Map();const r=[...TWLD.vers,...TWLD.inv,...TWLD.hyb];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}r.forEach((x,i)=>TORD.set(x,i))}return [...a].sort((x,y)=>TORD.get(x)-TORD.get(y))};
 const CLBL=c=>c==='Recht-Politik'?'Recht und Politik':c;
+/* 13.11. (Niels): Schlagworte entfallen beim ersten Login, nur noch Kategorien (ein Schritt). Schlagworte bleiben im Profil unter Themen wählbar. */
 function themenModal(){if($('#tmodal'))return;const k=WELT||'vers',cats=new Set(),tags=new Set();let step=0;
  const G=[['vers','Versicherung'],['inv','Investment'],['both','Für beide Welten']].filter(([g])=>g==='both'||k==='beide'||g===k).map(([g,t])=>[g,t,Object.keys(TAX).filter(c=>wOf({cat:c})===g)]).filter(x=>x[2].length);
  const dot=g=>`<i class="wd wd-${g==='both'?'beide':g}"></i>`;
  const d=document.createElement('div');d.className='wmodal';d.id='tmodal';document.body.appendChild(d);lockScroll(true);
  const render=()=>{const chosen=[...cats];
   d.innerHTML=`<div class="wm-card th-card" role="dialog" aria-modal="true" aria-labelledby="tT">
-  <span class="caption muted">Schritt ${step+1} von 2</span>
   ${step===0?`<h2 id="tT" class="h-section">Welche Themen interessieren Sie?</h2>
   <p class="muted">Danach richten wir Ihre Empfehlungen, Webinare und Benachrichtigungen aus. Mehrfachauswahl möglich.</p>
   <div class="th-groups">${G.map(([g,t,cs])=>`<div class="th-g"><h3>${dot(g)}${t}</h3><div class="th-chips">${cs.map(c=>`<button type="button" class="chip${cats.has(c)?' on':''}" data-thc="${c}" aria-pressed="${cats.has(c)}">${CLBL(c)}</button>`).join('')}</div></div>`).join('')}</div>`
   :`<h2 id="tT" class="h-section">Und genauer?</h2>
   <p class="muted">Wählen Sie mindestens ein Schlagwort. Je genauer Ihre Auswahl, desto passender die Empfehlungen.</p>
   <div class="th-groups">${[['vers','Versicherung',TWLD.vers],['inv','Investment',TWLD.inv],['both','Für beide Welten',TWLD.hyb]].filter(([g])=>g==='both'||k==='beide'||g===k).map(([g,t,ts])=>`<div class="th-g th-row"><h3>${dot(g)}${g==='both'&&k!=='beide'?'Allgemein':t}</h3><div><div class="th-chips">${shuf(ts).map((t,i)=>`<button type="button" class="chip${tags.has(t)?' on':''}${i>=TMAX?' xtra':''}" ${i>=TMAX&&!tags.has(t)?'hidden':''} data-tht="${t}" aria-pressed="${tags.has(t)}">${t}</button>`).join('')}</div>${ts.length>TMAX?`<button type="button" class="link small th-more" aria-expanded="false" data-tmore data-n="${ts.length-TMAX}"><span>Weitere anzeigen (${ts.length-TMAX})</span></button>`:''}</div></div>`).join('')}</div>`}
-  <div class="wm-f"><span class="small muted" id="tSum"></span><span class="th-btns">${step?'<button type="button" class="btn btn-ghost" data-th-back>Zurück</button>':''}<button type="button" class="btn btn-primary" data-th-next>${step?'Fertig':'Weiter'}</button></span></div>
-  <p class="caption muted">Ändern können Sie Ihre Themen jederzeit im Profil.</p></div>`;
+  <div class="wm-f"><span class="small muted" id="tSum"></span><span class="th-btns">${step?'<button type="button" class="btn btn-ghost" data-th-back>Zurück</button>':''}<button type="button" class="btn btn-primary" data-th-next>Fertig</button></span></div>
+  <p class="caption muted">Ändern und mit Schlagworten genauer eingrenzen können Sie Ihre Themen jederzeit im Profil.</p></div>`;
   sum();wireT()};
  const sum=()=>{const s=$('#tSum',d),b=$('[data-th-next]',d);if(step===0){s.textContent=cats.size?cats.size+(cats.size===1?' Thema':' Themen')+' gewählt':'Bitte wählen Sie mindestens ein Thema.';b.disabled=!cats.size}else{s.textContent=tags.size?tags.size+(tags.size===1?' Schlagwort':' Schlagworte')+' gewählt':'Bitte wählen Sie mindestens ein Schlagwort.';b.disabled=!tags.size}};
  const wireT=()=>{$$('[data-thc]',d).forEach(b=>b.addEventListener('click',()=>{const c=b.dataset.thc;cats.has(c)?cats.delete(c):cats.add(c);b.classList.toggle('on',cats.has(c));b.setAttribute('aria-pressed',cats.has(c));sum()}));
   $$('[data-tht]',d).forEach(b=>b.addEventListener('click',()=>{const t=b.dataset.tht;tags.has(t)?tags.delete(t):tags.add(t);b.classList.toggle('on',tags.has(t));b.setAttribute('aria-pressed',tags.has(t));sum()}));
   $$('[data-tmore]',d).forEach(m=>m.addEventListener('click',()=>{const open=m.getAttribute('aria-expanded')!=='true';m.setAttribute('aria-expanded',open);m.querySelector('span').textContent=open?'Weniger anzeigen':'Weitere anzeigen ('+m.dataset.n+')';m.closest('.th-g').querySelectorAll('.chip.xtra').forEach(c=>{c.hidden=!open&&!c.classList.contains('on')})}));
   const bk=$('[data-th-back]',d);if(bk)bk.addEventListener('click',()=>{step=0;render();$('.wm-card',d).scrollTop=0});
-  $('[data-th-next]',d).addEventListener('click',()=>{if(step===0){step=1;render();$('.wm-card',d).scrollTop=0;return}
-   INT={cats:[...cats],tags:[...tags]};saveInt();try{localStorage.setItem('pf-themen','1')}catch(e){}
+  $('[data-th-next]',d).addEventListener('click',()=>{
+   INT={cats:[...cats],tags:[]};saveInt();try{localStorage.setItem('pf-themen','1')}catch(e){}
    d.classList.remove('show');setTimeout(()=>{d.remove();lockScroll(false);if(route==='home')softGo()},300);setTimeout(()=>toast('Ihre Empfehlungen sind eingerichtet'),350);setTimeout(()=>maybeIntro(),1400)})};
  render();requestAnimationFrame(()=>{d.classList.add('show');const f=$('[data-thc]',d);f&&f.focus({preventScroll:true})})}
 /* 29.10.: Einmaliges Intro zum Launch. Finn zeigt in 5 Schritten, was neu ist. Überspringbar. ?intro startet es erneut. */
