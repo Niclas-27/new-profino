@@ -834,6 +834,11 @@ html[data-theme=dark] .wm-o[aria-pressed="true"] .wm-ck{background-image:url("da
 .sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,34,49,.2);transition:transform .3s var(--ease)}
 .sw:checked{background:var(--action)}.sw:checked::after{transform:translateX(18px)}
 .sw:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.sw:disabled{opacity:.45;cursor:not-allowed}
+/* 13.11. (Niels): Rückfrage beim Abwählen einer Bildungswelt */
+.wc-card{width:min(520px,100%);padding:32px}.wc-card h2{max-width:none}
+.wc-f{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px}
+.wlast{margin:12px 0 0}
 .setsave{display:flex;justify-content:flex-end;position:sticky;bottom:24px}
 @media (max-width:899px){.pkrow{grid-template-columns:1fr 1fr 1fr;gap:8px}.pkrow .kpi{padding:14px}.cgrid{grid-template-columns:1fr}.sets{grid-template-columns:1fr;gap:20px}.setnav{position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none}.setnav a{white-space:nowrap}.fgrid{grid-template-columns:1fr}.req{grid-template-columns:44px 1fr}.reqa{grid-column:1/-1}.reqa .btn{flex:1}.setsave{bottom:96px}.setsave .btn{width:100%}}
 
@@ -1899,7 +1904,7 @@ function softGo(){const y=scrollY;const rl=$('#nextRail'),rs=rl?rl.scrollLeft:0,
 function setFilter(k){if(!WLBL[k]||!hasBoth())return;const ch=k!==wNow();WF=k;try{localStorage.setItem('pf-wf',k)}catch(e){}applyWelt();
  $$('[data-wseg] [data-welt]').forEach(b=>{const on=b.dataset.welt===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
  $$('[data-wseg]').forEach(el=>{const th=el.querySelector('.thumb'),b=el.querySelector('.on');if(th&&b){th.style.left=b.offsetLeft+'px';th.style.width=b.offsetWidth+'px'}});
- if(ch)toast(k==='beide'?'Sie sehen Inhalte aus beiden Welten':'Gefiltert auf '+WLBL[k]);
+ if(ch)toast(k==='beide'?'Sie sehen Inhalte aus beiden Welten':'Gefiltert auf '+WLBL[k]+'. Ihre Welten im Profil bleiben aktiv.');
  if(ch)setTimeout(softGo,60)}
 function setWelt(k,quiet){if(!WLBL[k])return;const ch=k!==WELT;WELT=k;WF=null;try{localStorage.setItem('pf-welt',k);localStorage.removeItem('pf-wf')}catch(e){}applyWelt();
  $$('[data-wseg] [data-welt]').forEach(b=>{const on=b.dataset.welt===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
@@ -1953,6 +1958,17 @@ function gate(){if($('#gate'))return;lockScroll(true);
 function erlGet(){try{return localStorage.getItem('pf-erl')||''}catch(e){return ''}}
 function erlHint(){if(WELT!=='inv'&&WELT!=='beide')return '';const v=erlGet();if(!v)return `<div class="erlhint"><span class="wd wd-inv"></span><div><div class="small">Ihre Erlaubnis für Kapitalanlagen fehlt noch</div><div class="caption muted">Damit wir Ihnen die passenden Investment-Inhalte zeigen.</div></div><button type="button" class="btn btn-secondary btn-sm" data-erl-open>Jetzt angeben</button></div>`;return `<div class="erlhint ok"><span class="wd wd-inv"></span><div><div class="caption muted">Erlaubnis für Kapitalanlagen</div><div class="small">${v.split('|').map(x=>x==='keine'?'Keine der genannten':x).join(', ')}</div></div><button type="button" class="link small" data-erl-open>Ändern</button></div>`}
 function erlHintRefresh(){const h=$('#erlHint');if(h)h.innerHTML=erlHint()}
+/* 13.11. (Niels): Rückfrage beim Abwählen einer Bildungswelt im Profil. Nichts wird gelöscht: Nachweise, Anmeldungen, Merkliste und Themen bleiben gespeichert. */
+function weltOffModal(k,ok,back){if($('#wcmodal'))return;const n=WLBL[k],d=document.createElement('div');d.className='wmodal';d.id='wcmodal';
+ d.innerHTML=`<div class="wm-card wc-card" role="alertdialog" aria-modal="true" aria-labelledby="wcT" aria-describedby="wcD">
+  <span class="wtag"><i class="wd wd-${k}"></i>${n}</span>
+  <h2 id="wcT" class="h-section">Bildungswelt ${n} ausblenden?</h2>
+  <p id="wcD" class="muted">Sie sehen dann keine Webinare, Kongresse und News mehr, die nur für die Welt ${n} gedacht sind. Inhalte für beide Welten bleiben sichtbar. Ihre Nachweise, Anmeldungen und gemerkten Inhalte bleiben erhalten, und Sie können ${n} hier jederzeit wieder aktivieren.</p>
+  <div class="wc-f"><button type="button" class="btn btn-ghost" data-wc-no>Abbrechen</button><button type="button" class="btn btn-primary" data-wc-ok>${n} ausblenden</button></div></div>`;
+ document.body.appendChild(d);
+ const close=y=>{d.classList.remove('show');setTimeout(()=>d.remove(),300);document.removeEventListener('keydown',esc);y?ok():back&&back()};const esc=e=>{if(e.key==='Escape')close(false)};document.addEventListener('keydown',esc);
+ d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-wc-no]'))close(false);else if(e.target.closest('[data-wc-ok]'))close(true)});
+ requestAnimationFrame(()=>{d.classList.add('show');$('[data-wc-no]',d).focus({preventScroll:true})})}
 document.addEventListener('click',e=>{if(e.target.closest('[data-erl-open]'))erlaubnisModal(WELT,{profile:true})});
 function erlaubnisModal(k,o={}){if($('#emodal'))return;const sel=new Set(o.profile&&erlGet()?erlGet().split('|'):[]);const d=document.createElement('div');d.className='wmodal';d.id='emodal';
  d.innerHTML=`<div class="wm-card" role="dialog" aria-modal="true" aria-labelledby="eT">
@@ -2369,7 +2385,7 @@ function PT_set(){const sw=(l,d,on)=>`<label class="srow"><div><div>${l}</div><d
    <label class="srow"><div><div>Profilbild im Chat und Netzwerk zeigen</div><div class="small muted">Kontakte erkennen Sie schneller</div></div><input type="checkbox" class="sw" checked></label>
    <div class="fgrid">${fld('Vorname','Florian')}${fld('Nachname','Hierholzer')}${fld('E-Mail','florian@hierholzer-finanz.de','email')}${fld('Telefon','+49 30 1234567','tel')}${fld('Firma','Hierholzer Finanzberatung')}<label class="fld"><span class="small muted">Tätigkeit</span><select><option>Makler</option><option>Vermittler</option><option>Mehrfachagent</option><option>Finanzdienstleister</option></select></label></div></div>
   <div class="setbox rv" id="setW"><h2 class="h-title">Bildungswelten</h2><p class="small muted" style="margin:0">Bestimmt, welche Webinare, Kongresse und News Sie sehen. Mit beiden Welten erscheint auf der Übersicht ein Schalter zum Filtern.</p>
-   <div class="wsets">${[['vers','Versicherung','Für Versicherungsmakler und -vermittler'],['inv','Investment','Für Finanzanlagenvermittler nach § 34f GewO und KWG']].map(([k,t,d])=>`<label class="srow"><div class="wsr"><i class="wd wd-${k}"></i><div><div>${t}</div><div class="small muted">${d}</div></div></div><input type="checkbox" class="sw" data-wset="${k}"${(WELT==='beide'||WELT===k||(!WELT&&k==='vers'))?' checked':''}></label>`).join('')}</div><div id="erlHint">${erlHint()}</div></div>
+   <div class="wsets">${[['vers','Versicherung','Für Versicherungsmakler und -vermittler'],['inv','Investment','Für Finanzanlagenvermittler nach § 34f GewO und KWG']].map(([k,t,d])=>`<label class="srow"><div class="wsr"><i class="wd wd-${k}"></i><div><div>${t}</div><div class="small muted">${d}</div></div></div><input type="checkbox" class="sw" data-wset="${k}"${(WELT==='beide'||WELT===k||(!WELT&&k==='vers'))?' checked':''}${WELT!=='beide'&&(WELT===k||(!WELT&&k==='vers'))?' disabled aria-describedby="wLast"':''}></label>`).join('')}</div><p class="caption muted wlast" id="wLast"${WELT==='beide'?' hidden':''}>Mindestens eine Bildungswelt muss aktiv sein.</p><div id="erlHint">${erlHint()}</div></div>
   <div class="setbox rv" id="set1"><h2 class="h-title">Benachrichtigungen</h2>${sw('Erinnerung vor Webinaren','15 Minuten vor Beginn per E-Mail',1)}${sw('Neue Aufzeichnungen in meinen Themen','Wöchentliche Zusammenfassung',1)}${sw('Nachrichten und Kontaktanfragen','Sofort per E-Mail',1)}${sw('Newsletter','Kongresse und Neuigkeiten, einmal im Monat',0)}</div>
   <div class="setbox rv" id="set2"><h2 class="h-title">Themen</h2><p class="small muted" style="margin:0">Danach richten wir Empfehlungen, Benachrichtigungen und die Mediathek aus. Folgen Sie ganzen Kategorien oder wählen Sie einzelne Schlagworte.</p><div class="taxl" id="taxl">${taxList()}</div></div>
   <div class="setbox rv" id="set3"><h2 class="h-title">Weiterbildung nach IDD</h2><div class="fgrid">${fld('Jahresziel (Stunden)','15','number')}${fld('Registriernummer','D-ABCD-EFGH1-23')}</div>${sw('Nachweise automatisch erstellen','Nach jeder vollständigen Teilnahme',1)}</div>
@@ -2381,7 +2397,11 @@ function wireProfil(){const t=$('#ptab');if(!t)return;
  seg($('#segProf'),i=>{curPT=i;{const sp=$('#segProf'),bt=sp&&sp.querySelectorAll('button')[i];if(bt)bt.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})}t.style.opacity=0;t.style.transform='translateY(8px)';setTimeout(()=>{t.innerHTML=PTAB[i]();fillIcons(t);wireTab();t.style.opacity=1;t.style.transform='none';reveal();setTimeout(()=>{$$('.ring .fg',t).forEach(c=>c.style.strokeDashoffset=c.dataset.off)},50)},200)});
  const b=$$('#segProf button');b.forEach((x,k)=>x.classList.toggle('on',k===curPT));wireTab()}
 function wireTab(){const t=$('#ptab');
- $$('[data-wset]',t).forEach(c=>c.onchange=()=>{const on=$$('[data-wset]',t).filter(x=>x.checked).map(x=>x.dataset.wset);if(!on.length){c.checked=true;toast('Bitte mindestens eine Welt wählen');return}const k=on.length===2?'beide':on[0],prevInv=WELT==='inv'||WELT==='beide';setWelt(k,true);toast(k==='beide'?'Beide Welten aktiv. Auf der Übersicht können Sie filtern.':'Sie sehen jetzt Inhalte aus '+WLBL[k]);weltSlots();erlHintRefresh();if((k==='inv'||k==='beide')&&!prevInv&&!erlGet())setTimeout(()=>erlaubnisModal(k,{profile:true}),500)});
+ /* 13.11. (Niels): Abwählen einer Welt erst nach Rückfrage. Hinzufügen ohne Rückfrage. Letzte aktive Welt ist gesperrt. */
+ const wApply=()=>{const all=$$('[data-wset]',t),on=all.filter(x=>x.checked).map(x=>x.dataset.wset);if(!on.length)return;const k=on.length===2?'beide':on[0],prevInv=WELT==='inv'||WELT==='beide';
+  all.forEach(x=>{const lock=on.length===1&&x.checked;x.disabled=lock;lock?x.setAttribute('aria-describedby','wLast'):x.removeAttribute('aria-describedby')});const wl=$('#wLast',t);if(wl)wl.hidden=on.length!==1;
+  setWelt(k,true);toast(k==='beide'?'Beide Welten aktiv. Auf der Übersicht können Sie filtern.':'Sie sehen jetzt Inhalte aus '+WLBL[k]);weltSlots();erlHintRefresh();if((k==='inv'||k==='beide')&&!prevInv&&!erlGet())setTimeout(()=>erlaubnisModal(k,{profile:true}),500)};
+ $$('[data-wset]',t).forEach(c=>c.onchange=()=>{if(c.checked)return wApply();c.checked=true;weltOffModal(c.dataset.wset,()=>{c.checked=false;wApply()},()=>c.focus({preventScroll:true}))});
  const af=$('#avFile');if(af)af.onchange=()=>avUpload(af);
  $$('.req',t).forEach(r=>{r.querySelectorAll('button').forEach(b=>b.onclick=()=>{toast(b.hasAttribute('data-acc')?'Kontakt hinzugefügt':'Anfrage abgelehnt');r.style.opacity=0;r.style.transform='translateX(12px)';setTimeout(()=>r.remove(),300)})});
  const cq=$('#cq',t);if(cq)cq.oninput=()=>{const q=cq.value.toLowerCase();$('#cgrid').innerHTML=cgrid(CONTACTS.filter(c=>(c.join(' ')).toLowerCase().includes(q)));fillIcons($('#cgrid'))};
