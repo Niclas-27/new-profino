@@ -639,7 +639,7 @@ const V={
  rolle:()=>`<div class="head"><h1>Wie nutzen Sie profino?</h1><p>Davon hängt ab, welche Angaben wir als Nächstes brauchen.</p></div>
   <div class="roles" role="radiogroup" aria-label="Rolle">
    ${ROLES.map(([k,ic,t,s])=>
-     `<button type="button" class="role" role="radio" aria-checked="${S.role===k}" data-role="${k}"><span class="ik">${ic}</span><span class="tx"><b>${t}</b><span>${s}</span></span><span class="radio"></span></button>${S.role==='aussteller'&&k==='aussteller'?`<div class="grid" style="margin:4px 0 4px 84px;padding-left:16px;border-left:2px solid var(--action)">${select('aussteller','Gesellschaft',D.exhibitors,{ph:'Gesellschaft wählen'})}${select('pos','Ihre Position',D.positions)}</div>`:''}`).join('')}
+     `<button type="button" class="role" role="radio" aria-checked="${S.role===k}" data-role="${k}"><span class="ik">${ic}</span><span class="tx"><b>${t}</b><span>${s}</span></span><span class="radio"></span></button>${S.role==='aussteller'&&k==='aussteller'?`<div class="grid" style="margin:4px 0 4px 84px;padding-left:16px;border-left:2px solid var(--action)">${select('aussteller','Gesellschaft',D.exhibitors,{ph:'Gesellschaft wählen'})}</div>`:''}`).join('')}
   </div>${actions()}`,
 
  welt:()=>`<div class="head"><h1>Wofür nutzen Sie profino?</h1><p>Wählen Sie Ihre Welt. Danach richten wir Webinare, Themen und Gesellschaften darauf aus.</p></div>
@@ -838,7 +838,7 @@ function validate(){
  }
  if(S.step==='firma'){['firma','str','nr','plz','ort'].forEach(f=>{if(!d[f].trim())mark(f)});if(!d.pos)mark('pos');if(!d.ma)mark('ma');if(!d.ums)mark('ums')}
  if(S.step==='gesellschaft'){if(!d.aussteller)mark('aussteller');if(!d.pos)mark('pos')}
- if(S.step==='rolle'&&S.role==='aussteller'){if(!d.aussteller)mark('aussteller');if(!d.pos)mark('pos')}
+ if(S.step==='rolle'&&S.role==='aussteller'){if(!d.aussteller)mark('aussteller')}
  if(S.step==='zulassung'){if(!d.zul.length){$('#zulmsg').classList.add('show');bad.push($('#zulmsg'))}d.zul.forEach(z=>{if(!(d.ids[z]||'').trim()){const r=$(`[data-id="${CSS.escape(z)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
  if(S.step==='erlaubnis'){if(!d.erl.length){$('#erlmsg').classList.add('show');bad.push($('#erlmsg'))}d.erl.filter(k=>D.erlReg.includes(k)).forEach(k=>{if(!(d.eids[k]||'').trim()){const r=$(`[data-eid="${CSS.escape(k)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
  if(S.step==='welt'&&!d.welt.length){$('#wmsg').classList.add('show');bad.push($('#wmsg'))}
