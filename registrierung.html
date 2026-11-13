@@ -578,9 +578,14 @@ function tagCloud(){const all=[...new Set(visTopics().flatMap(t=>D.sub[t]))];
  return all.sort((a,b)=>CLOUD_ORDER.get(a)-CLOUD_ORDER.get(b))}
 /* Zustand */
 const S={step:'konto',role:'vermittler',d:{anrede:'',vorname:'',nachname:'',email:'',tel:'',geb:'',pw:'',pw2:'',agb:false,nl:false,firma:'',str:'',nr:'',plz:'',ort:'',ma:'',pos:'',ums:'',aussteller:'',zul:[],ids:{},erl:[],eids:{},welt:[],topics:[],subs:[],magazin:''}};
-/* Rollenwahl entfällt (Feedback 23.10.): Gateway/Switch Versicherung vs. Investment wird separat konzipiert */
+/* Rollenwahl reaktiviert (13.11.): Rolle zuerst, danach Welt für alle Rollen; Aussteller-Auswahl klappt direkt unter der Rollenkarte auf, Sonstige ohne Zulassungs-/Erlaubnisabfrage */
 /* Fork nach der Welt: Versicherung fragt die Zulassung nach § 34d ab, Investment die Erlaubnis nach § 34f/KWG, beide Welten beides */
-const FLOWS={vermittler:()=>['konto','welt','firma',...(S.d.welt.includes('inv')&&!S.d.welt.includes('vers')?[]:['zulassung']),...(S.d.welt.includes('inv')?['erlaubnis']:[]),'themen','fokus','abschluss']};
+const ROLES=[['vermittler',I.broker,'Webinarteilnehmer/in','Webinare besuchen, Bildungszeit sammeln, Versicherer kontaktieren'],['aussteller',I.hall,'Mitarbeiter*in eines Ausstellers','Den Auftritt Ihrer Gesellschaft auf profino betreuen'],['sonstige',I.other,'Sonstige','Zum Beispiel Verband, Presse oder Pool']];
+const FLOWS={
+ vermittler:()=>['konto','rolle','welt','firma',...(S.d.welt.includes('inv')&&!S.d.welt.includes('vers')?[]:['zulassung']),...(S.d.welt.includes('inv')?['erlaubnis']:[]),'themen','fokus','abschluss'],
+ aussteller:()=>['konto','rolle','welt','themen','fokus','abschluss'],
+ sonstige:()=>['konto','rolle','welt','firma','themen','fokus','abschluss']
+};
 const PHASE={konto:0,welt:1,rolle:1,firma:1,gesellschaft:1,zulassung:1,erlaubnis:1,themen:2,fokus:2,abschluss:3};
 const wsel=()=>S.d.welt.length?S.d.welt:['vers','inv'];
 const visTopics=()=>[...(wsel().includes('vers')?D.tw.vers:[]),...(wsel().includes('inv')?D.tw.inv:[]),...D.tw.all];
@@ -633,10 +638,8 @@ const V={
 
  rolle:()=>`<div class="head"><h1>Wie nutzen Sie profino?</h1><p>Davon hängt ab, welche Angaben wir als Nächstes brauchen.</p></div>
   <div class="roles" role="radiogroup" aria-label="Rolle">
-   ${[['vermittler',I.broker,'Vermittler oder Makler','Webinare besuchen, Bildungszeit sammeln, Versicherer kontaktieren'],
-      ['aussteller',I.hall,'Mitarbeiter einer Gesellschaft','Den Auftritt Ihrer Gesellschaft auf profino betreuen'],
-      ['sonstige',I.other,'Andere Rolle','Zum Beispiel Verband, Presse oder Pool']].map(([k,ic,t,s])=>
-     `<button type="button" class="role" role="radio" aria-checked="${S.role===k}" data-role="${k}"><span class="ik">${ic}</span><span class="tx"><b>${t}</b><span>${s}</span></span><span class="radio"></span></button>`).join('')}
+   ${ROLES.map(([k,ic,t,s])=>
+     `<button type="button" class="role" role="radio" aria-checked="${S.role===k}" data-role="${k}"><span class="ik">${ic}</span><span class="tx"><b>${t}</b><span>${s}</span></span><span class="radio"></span></button>${S.role==='aussteller'&&k==='aussteller'?`<div class="grid" style="margin:4px 0 4px 84px;padding-left:16px;border-left:2px solid var(--action)">${select('aussteller','Gesellschaft',D.exhibitors,{ph:'Gesellschaft wählen'})}${select('pos','Ihre Position',D.positions)}</div>`:''}`).join('')}
   </div>${actions()}`,
 
  welt:()=>`<div class="head"><h1>Wofür nutzen Sie profino?</h1><p>Wählen Sie Ihre Welt. Danach richten wir Webinare, Themen und Gesellschaften darauf aus.</p></div>
@@ -707,9 +710,10 @@ const V={
   <p class="msg" id="mmsg"></p>
   <div class="group"><h3>Ihre Angaben</h3><div class="summary">
    <div class="r"><span>Name</span><span>${esc([S.d.anrede,S.d.vorname,S.d.nachname].filter(Boolean).join(' '))||'nicht angegeben'}<button type="button" class="edit" data-go="konto" aria-label="Name ändern" title="Name ändern">${I.pen}</button></span></div>
+   <div class="r"><span>Rolle</span><span>${ROLES.find(r=>r[0]===S.role)?.[2]||'nicht angegeben'}<button type="button" class="edit" data-go="rolle" aria-label="Rolle ändern" title="Rolle ändern">${I.pen}</button></span></div>
    <div class="r"><span>Welt</span><span>${S.d.welt.length===2?'Versicherungen und Investment':S.d.welt[0]==='inv'?'Investment':S.d.welt.length?'Versicherungen':'nicht gewählt'}<button type="button" class="edit" data-go="welt" aria-label="Welt ändern" title="Welt ändern">${I.pen}</button></span></div>
    <div class="r"><span>E-Mail</span><span>${esc(S.d.email)||'nicht angegeben'}</span></div>
-   ${S.role==='aussteller'?`<div class="r"><span>Gesellschaft</span><span>${esc(S.d.aussteller)||'nicht angegeben'}</span></div>`:`<div class="r"><span>Firma</span><span>${esc(S.d.firma)||'nicht angegeben'}<button type="button" class="edit" data-go="firma" aria-label="Firma ändern" title="Firma ändern">${I.pen}</button></span></div>`}
+   ${S.role==='aussteller'?`<div class="r"><span>Gesellschaft</span><span>${esc(S.d.aussteller)||'nicht angegeben'}<button type="button" class="edit" data-go="rolle" aria-label="Gesellschaft ändern" title="Gesellschaft ändern">${I.pen}</button></span></div>`:`<div class="r"><span>Firma</span><span>${esc(S.d.firma)||'nicht angegeben'}<button type="button" class="edit" data-go="firma" aria-label="Firma ändern" title="Firma ändern">${I.pen}</button></span></div>`}
    ${flow().includes('zulassung')?`<div class="r"><span>Zulassungen</span><span>${S.d.zul.length?S.d.zul.length+' hinterlegt':'keine'}<button type="button" class="edit" data-go="zulassung" aria-label="Zulassungen ändern" title="Zulassungen ändern">${I.pen}</button></span></div>`:''}
    ${flow().includes('erlaubnis')?`<div class="r"><span>Erlaubnis</span><span>${S.d.erl.includes('keine')?'keine':S.d.erl.length?S.d.erl.map(nb).join(', '):'nicht angegeben'}<button type="button" class="edit" data-go="erlaubnis" aria-label="Erlaubnis ändern" title="Erlaubnis ändern">${I.pen}</button></span></div>`:''}
    <div class="r"><span>Themen</span><span>${S.d.topics.length+S.d.subs.length} gewählt<button type="button" class="edit" data-go="themen" aria-label="Themen ändern" title="Themen ändern">${I.pen}</button></span></div>
@@ -797,7 +801,7 @@ function bind(){
  $$('[data-eye]').forEach(b=>b.addEventListener('click',()=>{const i=$('#'+b.dataset.eye);const sh=i.type==='password';i.type=sh?'text':'password';b.innerHTML=sh?I.eyeoff:I.eye;b.setAttribute('aria-label',sh?'Passwort verbergen':'Passwort anzeigen')}));
  const agb=$('#agb');if(agb)agb.addEventListener('change',()=>{S.d.agb=agb.checked;agb.closest('.chk').classList.remove('err')});
  const nl=$('#nl');if(nl)nl.addEventListener('change',()=>S.d.nl=nl.checked);
- $$('[data-role]').forEach(b=>b.addEventListener('click',()=>{S.role=b.dataset.role;$$('[data-role]').forEach(x=>x.setAttribute('aria-checked',x===b));renderStepper();syncJump()}));
+ $$('[data-role]').forEach(b=>b.addEventListener('click',()=>{S.role=b.dataset.role;render(false)}));
  $$('[data-id]').forEach(i=>i.addEventListener('input',()=>i.closest('.reg').classList.remove('err')));
  $$('[data-zul]').forEach(b=>b.addEventListener('click',()=>{const z=b.dataset.zul,a=S.d.zul;const i=a.indexOf(z);i<0?a.push(z):a.splice(i,1);a.sort((x,y)=>D.zul.indexOf(x)-D.zul.indexOf(y));render(false)}));
  $$('[data-rm]').forEach(b=>b.addEventListener('click',()=>{S.d.zul=S.d.zul.filter(z=>z!==b.dataset.rm);render(false)}));
@@ -834,6 +838,7 @@ function validate(){
  }
  if(S.step==='firma'){['firma','str','nr','plz','ort'].forEach(f=>{if(!d[f].trim())mark(f)});if(!d.pos)mark('pos');if(!d.ma)mark('ma');if(!d.ums)mark('ums')}
  if(S.step==='gesellschaft'){if(!d.aussteller)mark('aussteller');if(!d.pos)mark('pos')}
+ if(S.step==='rolle'&&S.role==='aussteller'){if(!d.aussteller)mark('aussteller');if(!d.pos)mark('pos')}
  if(S.step==='zulassung'){if(!d.zul.length){$('#zulmsg').classList.add('show');bad.push($('#zulmsg'))}d.zul.forEach(z=>{if(!(d.ids[z]||'').trim()){const r=$(`[data-id="${CSS.escape(z)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
  if(S.step==='erlaubnis'){if(!d.erl.length){$('#erlmsg').classList.add('show');bad.push($('#erlmsg'))}d.erl.filter(k=>D.erlReg.includes(k)).forEach(k=>{if(!(d.eids[k]||'').trim()){const r=$(`[data-eid="${CSS.escape(k)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
  if(S.step==='welt'&&!d.welt.length){$('#wmsg').classList.add('show');bad.push($('#wmsg'))}
