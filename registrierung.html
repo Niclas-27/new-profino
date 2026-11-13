@@ -581,10 +581,11 @@ const S={step:'konto',role:'vermittler',d:{anrede:'',vorname:'',nachname:'',emai
 /* Rollenwahl reaktiviert (13.11.): Rolle zuerst, danach Welt für alle Rollen; Aussteller-Auswahl klappt direkt unter der Rollenkarte auf, Sonstige ohne Zulassungs-/Erlaubnisabfrage */
 /* Fork nach der Welt: Versicherung fragt die Zulassung nach § 34d ab, Investment die Erlaubnis nach § 34f/KWG, beide Welten beides */
 const ROLES=[['vermittler',I.broker,'Webinarteilnehmer/in','Webinare besuchen, Bildungszeit sammeln, Versicherer kontaktieren'],['aussteller',I.hall,'Mitarbeiter*in eines Ausstellers','Den Auftritt Ihrer Gesellschaft auf profino betreuen'],['sonstige',I.other,'Sonstige','Zum Beispiel Verband, Presse oder Pool']];
+/* Themen-Verfeinerung (Schritt "fokus"/Tags) entfällt (13.11.): Nur noch die Kategorienauswahl aus "themen" bleibt, je Welt gefiltert */
 const FLOWS={
- vermittler:()=>['konto','rolle','welt','firma',...(S.d.welt.includes('inv')&&!S.d.welt.includes('vers')?[]:['zulassung']),...(S.d.welt.includes('inv')?['erlaubnis']:[]),'themen','fokus','abschluss'],
- aussteller:()=>['konto','rolle','welt','themen','fokus','abschluss'],
- sonstige:()=>['konto','rolle','welt','firma','themen','fokus','abschluss']
+ vermittler:()=>['konto','rolle','welt','firma',...(S.d.welt.includes('inv')&&!S.d.welt.includes('vers')?[]:['zulassung']),...(S.d.welt.includes('inv')?['erlaubnis']:[]),'themen','abschluss'],
+ aussteller:()=>['konto','rolle','welt','themen','abschluss'],
+ sonstige:()=>['konto','rolle','welt','firma','themen','abschluss']
 };
 const PHASE={konto:0,welt:1,rolle:1,firma:1,gesellschaft:1,zulassung:1,erlaubnis:1,themen:2,fokus:2,abschluss:3};
 const wsel=()=>S.d.welt.length?S.d.welt:['vers','inv'];
@@ -716,7 +717,7 @@ const V={
    ${S.role==='aussteller'?`<div class="r"><span>Gesellschaft</span><span>${esc(S.d.aussteller)||'nicht angegeben'}<button type="button" class="edit" data-go="rolle" aria-label="Gesellschaft ändern" title="Gesellschaft ändern">${I.pen}</button></span></div>`:`<div class="r"><span>Firma</span><span>${esc(S.d.firma)||'nicht angegeben'}<button type="button" class="edit" data-go="firma" aria-label="Firma ändern" title="Firma ändern">${I.pen}</button></span></div>`}
    ${flow().includes('zulassung')?`<div class="r"><span>Zulassungen</span><span>${S.d.zul.length?S.d.zul.length+' hinterlegt':'keine'}<button type="button" class="edit" data-go="zulassung" aria-label="Zulassungen ändern" title="Zulassungen ändern">${I.pen}</button></span></div>`:''}
    ${flow().includes('erlaubnis')?`<div class="r"><span>Erlaubnis</span><span>${S.d.erl.includes('keine')?'keine':S.d.erl.length?S.d.erl.map(nb).join(', '):'nicht angegeben'}<button type="button" class="edit" data-go="erlaubnis" aria-label="Erlaubnis ändern" title="Erlaubnis ändern">${I.pen}</button></span></div>`:''}
-   <div class="r"><span>Themen</span><span>${S.d.topics.length+S.d.subs.length} gewählt<button type="button" class="edit" data-go="themen" aria-label="Themen ändern" title="Themen ändern">${I.pen}</button></span></div>
+   <div class="r"><span>Themen</span><span>${S.d.topics.length} gewählt<button type="button" class="edit" data-go="themen" aria-label="Themen ändern" title="Themen ändern">${I.pen}</button></span></div>
   </div></div>
   ${actions('<span><span class="xs-hide">Registrierung </span><span class="xs-cap">a</span>bschließen</span>')}`,
 
