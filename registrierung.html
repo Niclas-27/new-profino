@@ -224,6 +224,13 @@ html[data-theme=dark]{--w-inv:#e2b450}
 .reg{display:grid;grid-template-columns:1fr 1.15fr auto;gap:12px;align-items:center;padding:12px 12px 12px 16px;border-radius:var(--r-card);background:var(--tint)}
 .reg .nm{font-size:var(--t-small);color:var(--ink)}
 .reg .inp{height:44px;background:var(--surface)}
+/* 16.11.: Register-ID-Zeilen (ID + Art der Zulassung) */
+.reg2{grid-template-columns:1fr 1.15fr 40px;padding:12px}
+.reg2 .sel{height:44px;background-color:var(--surface);font-size:var(--t-small)}
+.reg.err .sel{border-color:var(--error)}
+.reg .x[hidden]{display:none}
+.reghd{display:grid;grid-template-columns:1fr 1.15fr 40px;gap:12px;padding:0 12px;font-size:var(--t-caption);color:var(--ink-2)}
+.reghd span:last-child{grid-column:2}
 .reg .x{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3)}
 .reg .x:hover{background:var(--muted);color:var(--ink)}
 .reg .x svg{width:18px;height:18px}
@@ -307,6 +314,7 @@ html[data-theme=dark]{--w-inv:#e2b450}
   .opts{grid-template-columns:1fr}
   .reg{grid-template-columns:1fr auto;padding:12px}
   .reg .inp{grid-column:1/-1;grid-row:2}
+  .reg2{grid-template-columns:1fr 40px}.reg2 .inp{grid-column:1/-1;grid-row:1}.reg2 .sel{grid-column:1;grid-row:2}.reg2 .x{grid-row:2}.reghd{display:none}
   .ph-i span{font-size:.75rem}
   .role{padding:16px}
 }
@@ -539,7 +547,8 @@ const D={
  positions:['Vorstand / Geschäftsführung','Leitende Angestellte','Außendienst','Innendienst','Büroadministration / Sekretariat','Sonstiges'],
  revenue:['bis 25.000 €','25.000 bis 50.000 €','50.000 bis 75.000 €','75.000 bis 100.000 €','100.000 bis 150.000 €','150.000 bis 200.000 €','200.000 bis 350.000 €','350.000 bis 500.000 €','500.000 bis 750.000 €','750.000 bis 1 Mio. €','über 1 Mio. €'],
  exhibitors:['Allianz','Alte Leipziger','ARAG','BarmeniaGothaer','Canada Life','DJE Kapital','ERGO','Hannoversche','HDI','Hiscox','LV 1871','VPV','WWK'],
- zul:['§ 34c GewO','§ 34d Abs. 1 Nr. 1 GewO','§ 34d Abs. 1 Nr. 2 GewO','§ 34d Abs. 2 GewO','§ 34d Abs. 6 GewO','§ 34d Abs. 7 Nr. 1 GewO','§ 34d Abs. 8 GewO','§ 34d Abs. 9 Satz 2 GewO','§ 34i Abs. 1 GewO'],
+ /* 16.11. (Niels): vollständige Liste der Zulassungsarten (inkl. § 34f/§ 34h), gleiche Liste im Portal-Profil */
+ zul:['§ 34c GewO','§ 34d Abs. 1 Nr. 1 GewO','§ 34d Abs. 1 Nr. 2 GewO','§ 34d Abs. 2 GewO','§ 34d Abs. 6 GewO','§ 34d Abs. 7 Nr. 1 GewO','§ 34d Abs. 8 GewO','§ 34d Abs. 9 Satz 2 GewO','§ 34f Abs. 1 GewO','§ 34h Abs. 1 GewO','§ 34i Abs. 1 GewO'],
  /* Investment: Erlaubnis bzw. Status (Feedback Niels 26.10., Referenz profino-bildungswelten). Registernummer nur für Erlaubnisse aus dem Vermittlerregister */
  erl:[['§ 34f GewO','Finanzanlagenvermittler'],['§ 34h GewO','Honorar-Finanzanlagenberater'],['§ 32 KWG','Erlaubnis nach dem Kreditwesengesetz'],['§ 3 Abs. 2 WpIG','Vertraglich gebundener Vermittler'],['keine','Keine der genannten']],
  erlReg:[], /* 29.10. (Niels): keine Registernummer bei Investment, Auswahl reicht */
@@ -578,7 +587,7 @@ function tagCloud(){const all=[...new Set(visTopics().flatMap(t=>D.sub[t]))];
  if(!CLOUD_ORDER){CLOUD_ORDER=new Map();const r=[...new Set([...Object.values(D.sub).flat(),...TW.vers,...TW.inv,...TW.hyb])];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}r.forEach((x,i)=>CLOUD_ORDER.set(x,i))}
  return all.sort((a,b)=>CLOUD_ORDER.get(a)-CLOUD_ORDER.get(b))}
 /* Zustand */
-const S={step:'konto',role:'vermittler',d:{anrede:'',vorname:'',nachname:'',email:'',tel:'',geb:'',pw:'',pw2:'',agb:false,nl:false,firma:'',str:'',nr:'',plz:'',ort:'',ma:'',pos:'',ums:'',aussteller:'',zul:[],ids:{},erl:[],eids:{},welt:[],topics:[],subs:[],magazin:''}};
+const S={step:'konto',role:'vermittler',d:{anrede:'',vorname:'',nachname:'',email:'',tel:'',geb:'',pw:'',pw2:'',agb:false,nl:false,firma:'',str:'',nr:'',plz:'',ort:'',ma:'',pos:'',ums:'',aussteller:'',zul:[],ids:{},regs:[{id:'',z:''}],erl:[],eids:{},welt:[],topics:[],subs:[],magazin:''}};
 /* Rollenwahl reaktiviert (13.11.): Rolle zuerst, danach Welt für alle Rollen; Aussteller-Auswahl klappt direkt unter der Rollenkarte auf, Sonstige ohne Zulassungs-/Erlaubnisabfrage */
 /* Fork nach der Welt: Versicherung fragt die Zulassung nach § 34d ab, Investment die Erlaubnis nach § 34f/KWG, beide Welten beides */
 const ROLES=[['vermittler',I.broker,'Webinarteilnehmer/in','Webinare besuchen, Bildungszeit sammeln, Versicherer kontaktieren'],['aussteller',I.hall,'Mitarbeiter*in eines Ausstellers','Den Auftritt Ihrer Gesellschaft auf profino betreuen'],['sonstige',I.other,'Sonstige','Zum Beispiel Verband, Presse oder Pool']];
@@ -677,11 +686,12 @@ const V={
   <p class="msg" id="erlmsg" style="margin-top:-16px">Bitte wählen Sie mindestens eine Angabe.</p>
   ${actions()}`,
 
- zulassung:()=>`<div class="head">${S.d.welt.includes('inv')?'<span class="wtag"><i class="wd wd-vers"></i>Versicherung</span>':''}<h1>Bildungszeit anrechnen lassen</h1><p>Wählen Sie Ihre Erlaubnisse und tragen Sie die Registrierungsnummer aus dem Vermittlerregister ein. Dann zählt schon Ihr erstes Webinar.</p></div>
-  <div class="group"><h3>Erlaubnis nach Gewerbeordnung <em>mindestens eine</em></h3>
-   <div class="chips">${D.zul.map(z=>`<button type="button" class="chip" aria-pressed="${S.d.zul.includes(z)}" data-zul="${esc(z)}">${I.check}${nb(z)}</button>`).join('')}</div></div>
-  <div class="regs" id="regs">${S.d.zul.map(z=>`<div class="reg"><span class="nm">${nb(z)}</span><input class="inp" aria-label="Registrierungsnummer für ${esc(z)}" placeholder="z. B. D-1ABC-DEFGH-12" data-id="${esc(z)}" value="${esc(S.d.ids[z]||'')}"><button type="button" class="x" data-rm="${esc(z)}" aria-label="${esc(z)} entfernen">${I.x}</button></div>`).join('')}</div>
-  <p class="msg" id="zulmsg" style="margin-top:-16px">Bitte wählen Sie mindestens eine Erlaubnis.</p>
+ /* 16.11. (Niels): beliebig viele Register-IDs, je mit Art der Zulassung (wie im Profil und in der heutigen profino) */
+ zulassung:()=>`<div class="head">${S.d.welt.includes('inv')?'<span class="wtag"><i class="wd wd-vers"></i>Versicherung</span>':''}<h1>Bildungszeit anrechnen lassen</h1><p>Tragen Sie Ihre Register-ID aus dem Vermittlerregister und die Art der Zulassung ein. Haben Sie mehrere Eintragungen, zum Beispiel persönlich und für Ihre Firma, fügen Sie weitere hinzu. Dann zählt schon Ihr erstes Webinar.</p></div>
+  <div class="group"><div class="reghd" aria-hidden="true"><span>Vermittler-ID</span><span>Art der Zulassung</span></div>
+  <div class="regs" id="regs">${S.d.regs.map((r,i)=>`<div class="reg reg2"><input class="inp" aria-label="Vermittler-ID ${i+1}" placeholder="z. B. D-1ABC-DEFGH-12" data-rid="${i}" value="${esc(r.id)}"><select class="sel rsel${r.z?'':' empty'}" aria-label="Art der Zulassung ${i+1}" data-rz="${i}"><option value=""${r.z?'':' selected'}>Bitte wählen</option>${D.zul.map(z=>`<option value="${esc(z)}"${z===r.z?' selected':''}>${z}</option>`).join('')}</select><button type="button" class="x" data-rrm="${i}" aria-label="Register-ID ${i+1} entfernen"${S.d.regs.length<2?' hidden':''}>${I.x}</button></div>`).join('')}</div>
+  <button type="button" class="more" data-radd><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Weitere Register-ID hinzufügen</button></div>
+  <p class="msg" id="zulmsg" style="margin-top:-16px">Bitte tragen Sie mindestens eine Register-ID mit Art der Zulassung ein.</p>
   ${actions()}`,
 
  /* 16.11. (Niels): keine sichtbare Trennung nach Welt mehr – alle Kategorien in einer flachen Liste, weiterhin nach gewählter(n) Welt(en) gefiltert über visTopics() */
@@ -717,7 +727,7 @@ const V={
    <div class="r"><span>Welt</span><span>${S.d.welt.length===2?'Versicherungen und Investment':S.d.welt[0]==='inv'?'Investment':S.d.welt.length?'Versicherungen':'nicht gewählt'}<button type="button" class="edit" data-go="welt" aria-label="Welt ändern" title="Welt ändern">${I.pen}</button></span></div>
    <div class="r"><span>E-Mail</span><span>${esc(S.d.email)||'nicht angegeben'}</span></div>
    ${S.role==='aussteller'?`<div class="r"><span>Gesellschaft</span><span>${esc(S.d.aussteller)||'nicht angegeben'}<button type="button" class="edit" data-go="rolle" aria-label="Gesellschaft ändern" title="Gesellschaft ändern">${I.pen}</button></span></div>`:`<div class="r"><span>Firma</span><span>${esc(S.d.firma)||'nicht angegeben'}<button type="button" class="edit" data-go="firma" aria-label="Firma ändern" title="Firma ändern">${I.pen}</button></span></div>`}
-   ${flow().includes('zulassung')?`<div class="r"><span>Zulassungen</span><span>${S.d.zul.length?S.d.zul.length+' hinterlegt':'keine'}<button type="button" class="edit" data-go="zulassung" aria-label="Zulassungen ändern" title="Zulassungen ändern">${I.pen}</button></span></div>`:''}
+   ${flow().includes('zulassung')?`<div class="r"><span>Zulassungen</span><span>${regsOk().length?regsOk().length+(regsOk().length>1?' Register-IDs':' Register-ID'):'keine'}<button type="button" class="edit" data-go="zulassung" aria-label="Zulassungen ändern" title="Zulassungen ändern">${I.pen}</button></span></div>`:''}
    ${flow().includes('erlaubnis')?`<div class="r"><span>Erlaubnis</span><span>${S.d.erl.includes('keine')?'keine':S.d.erl.length?S.d.erl.map(nb).join(', '):'nicht angegeben'}<button type="button" class="edit" data-go="erlaubnis" aria-label="Erlaubnis ändern" title="Erlaubnis ändern">${I.pen}</button></span></div>`:''}
    <div class="r"><span>Themen</span><span>${S.d.topics.length} gewählt<button type="button" class="edit" data-go="themen" aria-label="Themen ändern" title="Themen ändern">${I.pen}</button></span></div>
   </div></div>
@@ -779,7 +789,10 @@ function render(anim=true){
  renderStepper();bind();syncJump();syncNext();
  if(anim)window.scrollTo({top:0,behavior:'instant'});
 }
-const READY={welt:()=>S.d.welt.length>0,zulassung:()=>S.d.zul.length>0,erlaubnis:()=>S.d.erl.length>0,themen:()=>S.d.topics.length>0,fokus:()=>S.d.subs.length>0,abschluss:()=>true};
+/* 16.11.: vollständige Register-Zeilen; d.zul/d.ids bleiben als abgeleitete Werte erhalten (Übersicht, Seitenleiste) */
+const regsOk=()=>S.d.regs.filter(r=>r.id.trim()&&r.z);
+const syncZul=()=>{const ok=regsOk();S.d.zul=D.zul.filter(z=>ok.some(r=>r.z===z));S.d.ids={};ok.forEach(r=>{if(!S.d.ids[r.z])S.d.ids[r.z]=r.id})};
+const READY={welt:()=>S.d.welt.length>0,zulassung:()=>regsOk().length>0,erlaubnis:()=>S.d.erl.length>0,themen:()=>S.d.topics.length>0,fokus:()=>S.d.subs.length>0,abschluss:()=>true};
 function syncNext(){const b=$('.actions .btn-primary[type=submit]');if(!b)return;const ok=!READY[S.step]||READY[S.step]();b.disabled=!ok;b.setAttribute('aria-disabled',String(!ok))}
 $('#form').addEventListener('click',()=>setTimeout(syncNext,0));
 $('#form').addEventListener('change',()=>setTimeout(syncNext,0));
@@ -798,7 +811,7 @@ function bind(){
  $$('.inp[name]').forEach(el=>el.addEventListener('input',()=>{let v=el.value;
   if(el.id==='geb'){v=v.replace(/[^\d]/g,'').slice(0,8);v=v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2}\.\d{2})(\d)/,'$1.$2');el.value=v}
   S.d[el.id]=v;el.closest('.fld').classList.remove('err');if(el.id==='pw')pwRules()}));
- $$('.sel').forEach(el=>el.addEventListener('change',()=>{S.d[el.id]=el.value;el.classList.toggle('empty',!el.value);el.closest('.fld').classList.remove('err')}));
+ $$('.sel:not(.rsel)').forEach(el=>el.addEventListener('change',()=>{S.d[el.id]=el.value;el.classList.toggle('empty',!el.value);el.closest('.fld').classList.remove('err')}));
  $$('[data-anrede]').forEach(b=>b.addEventListener('click',()=>{S.d.anrede=b.dataset.anrede;$$('[data-anrede]').forEach(x=>x.setAttribute('aria-checked',x===b));segThumb();b.closest('.fld').classList.remove('err')}));
  segThumb();pwRules();
  $$('[data-eye]').forEach(b=>b.addEventListener('click',()=>{const i=$('#'+b.dataset.eye);const sh=i.type==='password';i.type=sh?'text':'password';b.innerHTML=sh?I.eyeoff:I.eye;b.setAttribute('aria-label',sh?'Passwort verbergen':'Passwort anzeigen')}));
@@ -806,9 +819,11 @@ function bind(){
  const nl=$('#nl');if(nl)nl.addEventListener('change',()=>S.d.nl=nl.checked);
  $$('[data-role]').forEach(b=>b.addEventListener('click',()=>{S.role=b.dataset.role;render(false)}));
  $$('[data-id]').forEach(i=>i.addEventListener('input',()=>i.closest('.reg').classList.remove('err')));
- $$('[data-zul]').forEach(b=>b.addEventListener('click',()=>{const z=b.dataset.zul,a=S.d.zul;const i=a.indexOf(z);i<0?a.push(z):a.splice(i,1);a.sort((x,y)=>D.zul.indexOf(x)-D.zul.indexOf(y));render(false)}));
- $$('[data-rm]').forEach(b=>b.addEventListener('click',()=>{S.d.zul=S.d.zul.filter(z=>z!==b.dataset.rm);render(false)}));
- $$('[data-id]').forEach(i=>i.addEventListener('input',()=>{S.d.ids[i.dataset.id]=i.value.toUpperCase();i.value=S.d.ids[i.dataset.id]}));
+ /* 16.11.: Register-ID-Zeilen */
+ $$('[data-rid]').forEach(i=>i.addEventListener('input',()=>{const r=S.d.regs[+i.dataset.rid];r.id=i.value.toUpperCase();i.value=r.id;i.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul()}));
+ $$('[data-rz]').forEach(el=>el.addEventListener('change',()=>{S.d.regs[+el.dataset.rz].z=el.value;el.classList.toggle('empty',!el.value);el.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul()}));
+ $$('[data-rrm]').forEach(b=>b.addEventListener('click',()=>{S.d.regs.splice(+b.dataset.rrm,1);if(!S.d.regs.length)S.d.regs.push({id:'',z:''});syncZul();render(false)}));
+ const radd=$('[data-radd]');if(radd)radd.addEventListener('click',()=>{S.d.regs.push({id:'',z:''});render(false);const ins=$$('[data-rid]');ins[ins.length-1].focus()});
  $$('[data-topic]').forEach(b=>b.addEventListener('click',()=>{S.d.topicsTouched=true;const t=b.dataset.topic,a=S.d.topics,i=a.indexOf(t);i<0?a.push(t):a.splice(i,1);a.sort((x,y)=>D.topics.indexOf(x)-D.topics.indexOf(y));b.setAttribute('aria-pressed',i<0);$('#tcount').textContent=a.length+' ausgewählt';$('#tmsg').classList.remove('show');$('[data-all]').textContent=a.length===visTopics().length?'Auswahl aufheben':'Alle auswählen';$('#side').innerHTML=SIDE.themen()}));
  const all=$('[data-all]');if(all)all.addEventListener('click',()=>{S.d.topicsTouched=true;S.d.topics=S.d.topics.length===visTopics().length?[]:D.topics.filter(t=>visTopics().includes(t));render(false)});
  $$('[data-erl]').forEach(c=>c.addEventListener('change',()=>{const k=c.dataset.erl;let a=S.d.erl.filter(x=>x!==k);if(c.checked)a=k==='keine'?['keine']:[...a.filter(x=>x!=='keine'),k];S.d.erl=D.erl.map(e=>e[0]).filter(x=>a.includes(x));render(false)}));
@@ -842,7 +857,7 @@ function validate(){
  if(S.step==='firma'){['firma','str','nr','plz','ort'].forEach(f=>{if(!d[f].trim())mark(f)});if(!d.pos)mark('pos');if(!d.ma)mark('ma');if(!d.ums)mark('ums')}
  if(S.step==='gesellschaft'){if(!d.aussteller)mark('aussteller');if(!d.pos)mark('pos')}
  if(S.step==='rolle'&&S.role==='aussteller'){if(!d.aussteller)mark('aussteller')}
- if(S.step==='zulassung'){if(!d.zul.length){$('#zulmsg').classList.add('show');bad.push($('#zulmsg'))}d.zul.forEach(z=>{if(!(d.ids[z]||'').trim()){const r=$(`[data-id="${CSS.escape(z)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
+ if(S.step==='zulassung'){const rows=$$('#regs .reg');d.regs.forEach((r,i)=>{const hasId=!!r.id.trim(),hasZ=!!r.z;if(hasId!==hasZ||(!hasId&&!hasZ&&d.regs.length>1)){rows[i].classList.add('err');bad.push(rows[i])}});if(!regsOk().length){$('#zulmsg').classList.add('show');bad.push($('#zulmsg'))}}
  if(S.step==='erlaubnis'){if(!d.erl.length){$('#erlmsg').classList.add('show');bad.push($('#erlmsg'))}d.erl.filter(k=>D.erlReg.includes(k)).forEach(k=>{if(!(d.eids[k]||'').trim()){const r=$(`[data-eid="${CSS.escape(k)}"]`).closest('.reg');r.classList.add('err');bad.push(r)}})}
  if(S.step==='welt'&&!d.welt.length){$('#wmsg').classList.add('show');bad.push($('#wmsg'))}
  if(S.step==='themen'&&!d.topics.length){$('#tmsg').classList.add('show');bad.push($('#tmsg'))}
@@ -857,7 +872,7 @@ function syncJump(){const j=$('#jump');const f=[...flow(),'fertig'];j.innerHTML=
 $('#jump').addEventListener('change',e=>{S.ret=false;setStep(e.target.value)});
 
 /* Beispieldaten: Textfelder sind beim Durchklicken vorbefüllt (Wunsch Niels 26.10.). Auswahlen bleiben leer, der Besucher wählt selbst (27.10.). ?leer startet komplett leer */
-const DEMO=()=>({welt:[],anrede:'',vorname:'Max',nachname:'Mustermann',email:'max.mustermann@muster-finanz.de',tel:'0170 1234567',geb:'01.01.1980',pw:'Profino2026',pw2:'Profino2026',agb:false,firma:'Muster Finanzberatung GmbH',str:'Musterstraße',nr:'1',plz:'10115',ort:'Berlin',ma:'',pos:'',ums:'',aussteller:'Alte Leipziger',zul:[],ids:{},erl:[],eids:{},topics:[],topicsTouched:false,subs:[],magazin:'digital'});
+const DEMO=()=>({welt:[],anrede:'',vorname:'Max',nachname:'Mustermann',email:'max.mustermann@muster-finanz.de',tel:'0170 1234567',geb:'01.01.1980',pw:'Profino2026',pw2:'Profino2026',agb:false,firma:'Muster Finanzberatung GmbH',str:'Musterstraße',nr:'1',plz:'10115',ort:'Berlin',ma:'',pos:'',ums:'',aussteller:'Alte Leipziger',zul:[],ids:{},regs:[{id:'',z:''}],erl:[],eids:{},topics:[],topicsTouched:false,subs:[],magazin:'digital'});
 $('#fill').addEventListener('click',()=>{Object.assign(S.d,DEMO());render(false)});
 try{if(!new URLSearchParams(location.search).has('leer'))Object.assign(S.d,DEMO())}catch(e){Object.assign(S.d,DEMO())}
 $('#theme').addEventListener('click',()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'});
