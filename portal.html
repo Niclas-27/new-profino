@@ -1526,7 +1526,8 @@ V.home=()=>`
  ${headW('Als Nächstes','Mein Kalender','#kalender')}
  <div class="carousel rv"><div class="rail" id="nextRail">
   <a class="livecard brand has-bgv" href="#webinar">${bgv('live','l')}
-   <div class="txt"><div><span class="pill pill-glass"><span class="dot pulse"></span>Jetzt live, 214 Teilnehmende</span><h3>Die Zukunft der Krebsmedizin: Wo Innovation auf Investmentchancen trifft</h3><div class="meta">Markus Kurz, Candriam<span class="bz-line">${clk()}1 h Bildungszeit</span></div></div><span class="btn btn-white" style="align-self:flex-start">Teilnehmen</span></div>
+   <!-- 16.11. (Niels): Teilnehmendenzahl aus der Live-Pill entfernt, nur noch "Jetzt live" -->
+   <div class="txt"><div><span class="pill pill-glass"><span class="dot pulse"></span>Jetzt live</span><h3>Die Zukunft der Krebsmedizin: Wo Innovation auf Investmentchancen trifft</h3><div class="meta">Markus Kurz, Candriam<span class="bz-line">${clk()}1 h Bildungszeit</span></div></div><span class="btn btn-white" style="align-self:flex-start">Teilnehmen</span></div>
    <div class="vis">${sender}<div>${portrait('')}</div></div>
   </a>
   ${WEB.slice(0,3).map(w=>`<a class="nextcard has-bgv" href="#detail" data-w="${w.id}">${bgv(w.a,'l')}<div class="ntop"><span class="pill pill-glass">${w.d}, ${w.t}</span><span class="pav">${ini(w.sp||w.prov.split(', ')[0])}</span></div><div class="nbody"><h3>${w.title}</h3><div class="small nmeta">${w.sp?w.sp+', ':''}${w.prov.split(', ')[0]}<span class="bz-line">${clk()}${w.bz} Bildungszeit</span></div></div><span class="btn btn-white" style="align-self:flex-start">Anmelden</span></a>`).join('')}
