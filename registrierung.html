@@ -684,10 +684,11 @@ const V={
   <p class="msg" id="zulmsg" style="margin-top:-16px">Bitte wählen Sie mindestens eine Erlaubnis.</p>
   ${actions()}`,
 
+ /* 16.11. (Niels): keine sichtbare Trennung nach Welt mehr – alle Kategorien in einer flachen Liste, weiterhin nach gewählter(n) Welt(en) gefiltert über visTopics() */
  themen:()=>`<div class="head"><h1>Was interessiert Sie?</h1><p>Wir zeigen Ihnen Webinare und News zu diesen Themen zuerst. Sie können das jederzeit im Profil ändern.</p></div>
   <p class="msg" id="tmsg">Bitte wählen Sie mindestens ein Thema.</p>
   <div class="chipbar"><span class="count" id="tcount">${S.d.topics.length} ausgewählt</span><button type="button" class="ulink small" data-all>${S.d.topics.length===visTopics().length?'Auswahl aufheben':'Alle auswählen'}</button></div>
-  <div class="groups">${[['vers','Versicherung'],['inv','Investment'],['all','Für beide Welten']].filter(([k])=>k==='all'||wsel().includes(k)).map(([k,h])=>`<div class="group"><h3><i class="wd wd-${k}"></i>${k==='all'&&wsel().length<2?'Allgemein':h}</h3><div class="chips">${D.tw[k].map(t=>`<button type="button" class="chip" aria-pressed="${S.d.topics.includes(t)}" data-topic="${esc(t)}">${I.check}${t}</button>`).join('')}</div></div>`).join('')}</div>
+  <div class="groups"><div class="group"><div class="chips">${[...visTopics()].sort((a,b)=>D.topics.indexOf(a)-D.topics.indexOf(b)).map(t=>`<button type="button" class="chip" aria-pressed="${S.d.topics.includes(t)}" data-topic="${esc(t)}">${I.check}${t}</button>`).join('')}</div></div></div>
   ${actions('Weiter',{hint:''})}`,
 
  fokus:()=>{const G=tagGroups();
