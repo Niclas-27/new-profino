@@ -2029,12 +2029,14 @@ const CLBL=c=>c==='Recht-Politik'?'Recht und Politik':c;
 function themenModal(){if($('#tmodal'))return;const k=WELT||'vers',cats=new Set(),tags=new Set();let step=0;
  const G=IGRP(k).map(([g,t])=>[g==='hyb'?'both':g,t,ABC(ICAT[g])]);
  const dot=g=>`<i class="wd wd-${g==='both'?'beide':g}"></i>`;
+ /* 16.11. (Niels): Kategorien beim ersten Login wie in der Registrierung als eine flache, alphabetische Liste – ohne Gruppierung nach Welt (Filter nach Welt bleibt) */
+ const FLAT=[...new Set(G.flatMap(x=>x[2]))].sort((a,b)=>CLBL(a).localeCompare(CLBL(b),'de'));
  const d=document.createElement('div');d.className='wmodal';d.id='tmodal';document.body.appendChild(d);lockScroll(true);
  const render=()=>{const chosen=[...cats];
   d.innerHTML=`<div class="wm-card th-card" role="dialog" aria-modal="true" aria-labelledby="tT">
   ${step===0?`<h2 id="tT" class="h-section">Welche Themen interessieren Sie?</h2>
   <p class="muted">Danach richten wir Ihre Empfehlungen, Webinare und Benachrichtigungen aus. Mehrfachauswahl möglich.</p>
-  <div class="th-groups">${G.map(([g,t,cs])=>`<div class="th-g"><h3>${dot(g)}${t}</h3><div class="th-chips">${cs.map(c=>`<button type="button" class="chip${cats.has(c)?' on':''}" data-thc="${c}" aria-pressed="${cats.has(c)}">${CLBL(c)}</button>`).join('')}</div></div>`).join('')}</div>`
+  <div class="th-groups"><div class="th-g"><div class="th-chips">${FLAT.map(c=>`<button type="button" class="chip${cats.has(c)?' on':''}" data-thc="${c}" aria-pressed="${cats.has(c)}">${CLBL(c)}</button>`).join('')}</div></div></div>`
   :`<h2 id="tT" class="h-section">Und genauer?</h2>
   <p class="muted">Wählen Sie mindestens ein Schlagwort. Je genauer Ihre Auswahl, desto passender die Empfehlungen.</p>
   <div class="th-groups">${[['vers','Versicherung',TWLD.vers],['inv','Investment',TWLD.inv],['both','Für beide Welten',TWLD.hyb]].filter(([g])=>g==='both'||k==='beide'||g===k).map(([g,t,ts])=>`<div class="th-g th-row"><h3>${dot(g)}${g==='both'&&k!=='beide'?'Allgemein':t}</h3><div><div class="th-chips">${shuf(ts).map((t,i)=>`<button type="button" class="chip${tags.has(t)?' on':''}${i>=TMAX?' xtra':''}" ${i>=TMAX&&!tags.has(t)?'hidden':''} data-tht="${t}" aria-pressed="${tags.has(t)}">${t}</button>`).join('')}</div>${ts.length>TMAX?`<button type="button" class="link small th-more" aria-expanded="false" data-tmore data-n="${ts.length-TMAX}"><span>Weitere anzeigen (${ts.length-TMAX})</span></button>`:''}</div></div>`).join('')}</div>`}
