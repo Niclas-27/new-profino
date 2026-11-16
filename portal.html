@@ -838,6 +838,15 @@ html[data-theme=dark] .wm-o[aria-pressed="true"] .wm-ck{background-image:url("da
 .fld input:focus,.fld select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklch,var(--accent) 18%,transparent)}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 0;border-top:1px solid var(--line);cursor:pointer}
 .setbox h2+.srow,.setbox p+.srow{border-top:0}
+/* 16.11. (Niels): Zeilen für mehrere Register-IDs */
+.regl{display:flex;flex-direction:column;gap:12px}
+.regr{display:grid;grid-template-columns:1fr 1fr 44px;gap:14px;align-items:end}
+.regr .regdel{height:52px;width:44px;border-radius:10px;color:var(--ink-3)}
+.regr .regdel:hover{color:var(--ink)}
+.regr .regdel svg{width:20px;height:20px}
+.regadd{align-self:flex-start;gap:6px}
+.regadd svg{width:16px;height:16px}
+@media (max-width:599px){.regr{grid-template-columns:1fr 44px}.regr .fld:first-child{grid-column:1/-1}}
 .sw{appearance:none;-webkit-appearance:none;width:46px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:none;cursor:pointer;transition:background .25s var(--ease)}
 .sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,34,49,.2);transition:transform .3s var(--ease)}
 .sw:checked{background:var(--action)}.sw:checked::after{transform:translateX(18px)}
@@ -2403,6 +2412,16 @@ function wireTax(){const l=$('#taxl');if(!l)return;l.onclick=e=>{const m=e.targe
  const c=e.target.closest('[data-icat],[data-itag]');if(!c)return;e.preventDefault();
  const key=c.dataset.icat?'cats':'tags',v=c.dataset.icat||c.dataset.itag,on=!INT[key].includes(v);INT[key]=on?[...INT[key],v]:INT[key].filter(x=>x!==v);
  c.classList.toggle('on',on);c.setAttribute('aria-pressed',on);saveInt()}}
+/* 16.11. (Niels): mehrere Register-IDs im Profil (Einstellungen → Weiterbildung nach IDD) */
+const ZUL_OPTS=['§ 34c GewO','§ 34d Abs. 1 GewO (Versicherungsmakler)','§ 34d Abs. 1 GewO (Versicherungsvertreter)','§ 34d Abs. 2 GewO (Versicherungsberater)','§ 34d Abs. 6 GewO','§ 34d Abs. 7 GewO','§ 34f GewO','§ 34h GewO','§ 34i GewO'];
+let REGS=[['D-UBDS-K7H2F-41','§ 34d Abs. 1 GewO (Versicherungsmakler)'],['D-F-110-UBDS-27','§ 34f GewO']];
+const regRows=()=>REGS.length?REGS.map((r,i)=>`<div class="regr"><label class="fld"><span class="small muted">Vermittler-ID</span><input value="${r[0]}" placeholder="z. B. D-ABCD-EFGH1-23" data-regid="${i}"></label><label class="fld"><span class="small muted">Art der Zulassung</span><select data-regz="${i}">${r[1]?'':'<option value="" selected disabled>Bitte wählen</option>'}${ZUL_OPTS.map(z=>`<option${z===r[1]?' selected':''}>${z}</option>`).join('')}</select></label><button type="button" class="iconbtn regdel" data-regdel="${i}" aria-label="Register-ID entfernen" title="Entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>`).join(''):`<p class="small muted" style="margin:0">Noch keine Register-ID hinterlegt.</p>`;
+const regRedraw=()=>{const l=$('#regList');if(l)l.innerHTML=regRows()};
+document.addEventListener('click',e=>{
+ if(e.target.closest('[data-regadd]')){REGS.push(['','']);regRedraw();const ins=$$('#regList [data-regid]');ins.length&&ins[ins.length-1].focus();return}
+ const d=e.target.closest('[data-regdel]');if(d){REGS.splice(+d.dataset.regdel,1);regRedraw();toast('Register-ID entfernt')}
+});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.regid!=null)REGS[+t.dataset.regid][0]=t.value;if(t.dataset&&t.dataset.regz!=null)REGS[+t.dataset.regz][1]=t.value});
 function PT_set(){const sw=(l,d,on)=>`<label class="srow"><div><div>${l}</div><div class="small muted">${d}</div></div><input type="checkbox" class="sw"${on?' checked':''}></label>`;
  const fld=(l,v,t='text')=>`<label class="fld"><span class="small muted">${l}</span><input type="${t}" value="${v}"></label>`;
  return `<section class="wrap sec-sm"><div class="sets">
@@ -2416,7 +2435,8 @@ function PT_set(){const sw=(l,d,on)=>`<label class="srow"><div><div>${l}</div><d
    <div class="wsets">${[['vers','Versicherung','Für Versicherungsmakler und -vermittler'],['inv','Investment','Für Finanzanlagenvermittler nach § 34f GewO und KWG']].map(([k,t,d])=>`<label class="srow"><div class="wsr"><i class="wd wd-${k}"></i><div><div>${t}</div><div class="small muted">${d}</div></div></div><input type="checkbox" class="sw" data-wset="${k}"${(WELT==='beide'||WELT===k||(!WELT&&k==='vers'))?' checked':''}${WELT!=='beide'&&(WELT===k||(!WELT&&k==='vers'))?' disabled aria-describedby="wLast"':''}></label>`).join('')}</div><p class="caption muted wlast" id="wLast"${WELT==='beide'?' hidden':''}>Mindestens eine Bildungswelt muss aktiv sein.</p><div id="erlHint">${erlHint()}</div></div>
   <div class="setbox rv" id="set1"><h2 class="h-title">Benachrichtigungen</h2>${sw('Erinnerung vor Webinaren','15 Minuten vor Beginn per E-Mail',1)}${sw('Neue Aufzeichnungen in meinen Themen','Wöchentliche Zusammenfassung',1)}${sw('Nachrichten und Kontaktanfragen','Sofort per E-Mail',1)}${sw('Newsletter','Kongresse und Neuigkeiten, einmal im Monat',0)}</div>
   <div class="setbox rv" id="set2"><h2 class="h-title">Themen</h2><p class="small muted" style="margin:0">Danach richten wir Empfehlungen, Benachrichtigungen und die Mediathek aus. Wählen Sie Kategorien und, wenn Sie möchten, einzelne Schlagworte.</p><div class="taxl" id="taxl">${taxList()}</div></div>
-  <div class="setbox rv" id="set3"><h2 class="h-title">Weiterbildung nach IDD</h2><div class="fgrid">${fld('Jahresziel (Stunden)','15','number')}${fld('Registriernummer','D-ABCD-EFGH1-23')}</div>${sw('Nachweise automatisch erstellen','Nach jeder vollständigen Teilnahme',1)}</div>
+  <!-- 16.11. (Niels): mehrere Vermittlerregister-IDs je mit Art der Zulassung; Feld "Jahresziel (Stunden)" entfällt (IDD-Ziel ist fest 15 h) -->
+  <div class="setbox rv" id="set3"><h2 class="h-title">Weiterbildung nach IDD</h2><p class="small muted" style="margin:0">Damit wir Ihre Bildungszeit anrechnen können, brauchen wir Ihre Register-ID aus dem Vermittlerregister und die Art der Zulassung. Haben Sie mehrere Eintragungen, zum Beispiel persönlich und für Ihre Firma, hinterlegen Sie alle.</p><div class="regl" id="regList">${regRows()}</div><button type="button" class="link regadd" data-regadd><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Weitere Register-ID hinzufügen</button>${sw('Nachweise automatisch erstellen','Nach jeder vollständigen Teilnahme',1)}</div>
   <div class="setbox rv" id="set4"><h2 class="h-title">Sicherheit</h2><div class="srow"><div><div>Passwort</div><div class="small muted">Zuletzt geändert vor 3 Monaten</div></div><button class="btn btn-secondary btn-sm" data-toast="Link zum Ändern wurde gesendet">Ändern</button></div>${sw('Zwei-Faktor-Anmeldung','Code per Authenticator-App',0)}<div class="srow"><div><div>Konto löschen</div><div class="small muted">Alle Daten und Nachweise werden entfernt</div></div><button class="btn btn-outline btn-sm" data-toast="Bitte bestätigen Sie per E-Mail">Löschen</button></div></div>
   <div class="setsave"><button class="btn btn-primary" data-toast="Änderungen gespeichert">Änderungen speichern</button></div>
  </div></div></section>`}
