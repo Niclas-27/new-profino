@@ -2089,7 +2089,7 @@ function profPreview(){if($('#pvm'))return;const d=document.createElement('div')
   <div class="pv-body">
   <div class="pv-head"><span class="pv-av" ${avStyle()}><span class="avi">FH</span></span></div>
   <div><h2 id="pvT" class="h-section">Florian Hierholzer</h2><p class="pv-hl">${BP.headline}</p><p class="caption muted pv-meta">${BP.exp[0][1]} · ${BP.loc} · 38 Kontakte<span class="pv-soc"><a href="https://www.${BP.li}" target="_blank" rel="noopener" aria-label="LinkedIn-Profil" title="LinkedIn">${IC_LI}</a><a href="https://www.${BP.xing}" target="_blank" rel="noopener" aria-label="XING-Profil" title="XING">${IC_XI}</a></span></p></div>
-  <div class="pv-badges"><span class="pv-b">${ICON.check}Weiterbildung nach IDD aktiv</span>${BP.lic.slice(0,2).map(l=>`<span class="pv-b">${ICON.check}${l[1].replace(' Abs. 1','')}</span>`).join('')}</div>
+  <div class="pv-badges"><span class="pv-b">${ICON.check}Weiterbildung nach IDD aktiv</span>${zulTypes().slice(0,2).map(t=>`<span class="pv-b">${ICON.check}${t}</span>`).join('')}</div>
   <div class="pv-rt">${stars(BP.rating.score)}<b>${String(BP.rating.score).replace('.',',')}</b><span class="caption muted">als Referent, ${BP.rating.count} Bewertungen</span></div>
   <p class="small pv-about">${BP.about}</p>
   <div class="pv-sec"><span class="eyebrow">Auszeichnungen</span><div class="pv-aw">${BP.awards.map(a=>`<span class="pv-b pv-a">${IC_MEDAL}${a[0]} ${a[1]}</span>`).join('')}</div></div>
@@ -2353,7 +2353,7 @@ ${bpSec('Bewertung als Referent',`<div class="bp-rt"><b>${String(BP.rating.score
 ${bpSec('Auszeichnungen',`<ul class="bp-aw">${BP.awards.map(a=>`<li><span class="bp-ai">${IC_MEDAL}</span><div><b>${a[0]}</b><div class="caption muted">${a[1]} · ${a[2]}</div></div></li>`).join('')}</ul>`,1)}
 </div>
 <div class="bp-side">
-${bpSec('Zulassungen',`<ul class="bp-lic">${BP.lic.map(l=>`<li><span class="bp-ck">${ICON.check}</span><div><div>${l[0]}</div><div class="caption muted">${l[1]}</div></div></li>`).join('')}</ul><div class="bp-reg caption muted">Vermittlerregister ${BP.reg}<br><a class="link" href="https://www.vermittlerregister.info" target="_blank" rel="noopener">Im Register prüfen</a></div>`)}
+${bpSec('Zulassungen',(()=>{const z=zulTypes();return z.length?`<ul class="bp-lic">${z.map(t=>`<li><span class="bp-ck">${ICON.check}</span><div>${t}</div></li>`).join('')}</ul>`:'<p class="small muted" style="margin:0">Noch keine Zulassung hinterlegt.</p>'})())}
 ${bpSec('Weiterbildung',`<div class="bp-idd"><b>6,5 h <small>von 15 h</small></b><div class="bp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="15" aria-valuenow="6.5" aria-label="Bildungszeit 2026"><i style="width:43%"></i></div><span class="small muted">Bildungszeit 2026 auf profino, automatisch erfasst. Noch 8,5 h bis zum Jahresziel nach IDD.</span></div><button type="button" class="link small" data-ptab-go="0">Nachweise ansehen</button>`,0,1)}
 ${bpSec('Fachgebiete',`<div class="pv-tags">${BP.areas.map(t=>`<span class="chip">${t}</span>`).join('')}</div><p class="caption muted" style="margin:12px 0 0">Steuert auch Ihre Empfehlungen auf profino.</p>`)}
 ${bpSec('Kenntnisse',`<div class="pv-tags">${BP.skills.map(t=>`<span class="chip">${t}</span>`).join('')}</div>`)}
@@ -2421,6 +2421,8 @@ function wireTax(){const l=$('#taxl');if(!l)return;l.onclick=e=>{const m=e.targe
 const ZUL_OPTS=['§ 34c GewO','§ 34d Abs. 1 Nr. 1 GewO','§ 34d Abs. 1 Nr. 2 GewO','§ 34d Abs. 2 GewO','§ 34d Abs. 6 GewO','§ 34d Abs. 7 Nr. 1 GewO','§ 34d Abs. 8 GewO','§ 34d Abs. 9 Satz 2 GewO','§ 34f Abs. 1 GewO','§ 34h Abs. 1 GewO','§ 34i Abs. 1 GewO']; /* vollständige Liste von Niels (16.11.), sortiert */
 let REGS=[['D-UBDS-K7H2F-41','§ 34d Abs. 1 Nr. 1 GewO'],['D-F-110-UBDS-27','§ 34f Abs. 1 GewO']];
 const regRows=()=>REGS.length?REGS.map((r,i)=>`<div class="regr"><label class="fld"><span class="small muted">Vermittler-ID</span><input value="${r[0]}" placeholder="z. B. D-ABCD-EFGH1-23" data-regid="${i}"></label><label class="fld"><span class="small muted">Art der Zulassung</span><select data-regz="${i}">${r[1]?'':'<option value="" selected disabled>Bitte wählen</option>'}${ZUL_OPTS.map(z=>`<option${z===r[1]?' selected':''}>${z}</option>`).join('')}</select></label><button type="button" class="iconbtn regdel" data-regdel="${i}" aria-label="Register-ID entfernen" title="Entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>`).join(''):`<p class="small muted" style="margin:0">Noch keine Register-ID hinterlegt.</p>`;
+/* 16.11. (Niels): Berufsprofil zeigt nur die Zulassungsarten aus den Einstellungen – ohne Register-ID und ohne Link zum Register */
+const zulTypes=()=>[...new Set(REGS.map(r=>r[1]).filter(Boolean))].sort((a,b)=>ZUL_OPTS.indexOf(a)-ZUL_OPTS.indexOf(b));
 const regRedraw=()=>{const l=$('#regList');if(l)l.innerHTML=regRows()};
 document.addEventListener('click',e=>{
  if(e.target.closest('[data-regadd]')){REGS.push(['','']);regRedraw();const ins=$$('#regList [data-regid]');ins.length&&ins[ins.length-1].focus();return}
