@@ -820,8 +820,8 @@ function bind(){
  $$('[data-role]').forEach(b=>b.addEventListener('click',()=>{S.role=b.dataset.role;render(false)}));
  $$('[data-id]').forEach(i=>i.addEventListener('input',()=>i.closest('.reg').classList.remove('err')));
  /* 16.11.: Register-ID-Zeilen */
- $$('[data-rid]').forEach(i=>i.addEventListener('input',()=>{const r=S.d.regs[+i.dataset.rid];r.id=i.value.toUpperCase();i.value=r.id;i.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul()}));
- $$('[data-rz]').forEach(el=>el.addEventListener('change',()=>{S.d.regs[+el.dataset.rz].z=el.value;el.classList.toggle('empty',!el.value);el.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul()}));
+ $$('[data-rid]').forEach(i=>i.addEventListener('input',()=>{const r=S.d.regs[+i.dataset.rid];r.id=i.value.toUpperCase();i.value=r.id;i.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul();syncNext()}));
+ $$('[data-rz]').forEach(el=>el.addEventListener('change',()=>{S.d.regs[+el.dataset.rz].z=el.value;el.classList.toggle('empty',!el.value);el.closest('.reg').classList.remove('err');$('#zulmsg').classList.remove('show');syncZul();syncNext()}));
  $$('[data-rrm]').forEach(b=>b.addEventListener('click',()=>{S.d.regs.splice(+b.dataset.rrm,1);if(!S.d.regs.length)S.d.regs.push({id:'',z:''});syncZul();render(false)}));
  const radd=$('[data-radd]');if(radd)radd.addEventListener('click',()=>{S.d.regs.push({id:'',z:''});render(false);const ins=$$('[data-rid]');ins[ins.length-1].focus()});
  $$('[data-topic]').forEach(b=>b.addEventListener('click',()=>{S.d.topicsTouched=true;const t=b.dataset.topic,a=S.d.topics,i=a.indexOf(t);i<0?a.push(t):a.splice(i,1);a.sort((x,y)=>D.topics.indexOf(x)-D.topics.indexOf(y));b.setAttribute('aria-pressed',i<0);$('#tcount').textContent=a.length+' ausgewählt';$('#tmsg').classList.remove('show');$('[data-all]').textContent=a.length===visTopics().length?'Auswahl aufheben':'Alle auswählen';$('#side').innerHTML=SIDE.themen()}));
